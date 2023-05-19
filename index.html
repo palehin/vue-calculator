@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet">
+    <title>Calculator Vue</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js" ></script>
+    <style>
+
+    body {
+        background: url('https://images.unsplash.com/photo-1466446105453-d151af699ac7?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1476&q=80') #ececec;
+        background-size: cover;
+        font-family: Roboto;
+    }
+    .calc {
+        position: absolute;
+        background: rgba(12 38 59 / .5);
+        backdrop-filter: blur(10px);
+        width: 100%;
+        max-width: 350px;
+        min-width: 300px;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px 1px rgba(0, 0, 0, .5);
+        overflow: hidden;
+        transform: translate(-50%, -50%);
+        left: 50%;
+        top: 50%;
+    }
+    .calc__header {
+        border-radius: 3px;
+        padding: 30px 40px;
+        position: relative;
+        border-bottom: 1px solid #1a72a7;
+    }
+    .calc__input {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+        border: 0;
+        text-align: right;
+        font-size: 30px;
+        outline: none;
+        background: transparent;
+        color: #fff;
+        font-weight: bold;
+    }
+    .calc__input::placeholder {
+        color: #fff;
+    }
+    .calc__small {
+        text-align: right;
+        color: #a0abb2;
+        font-size: 13px;
+    }
+    .calc__buttons {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: flex-start;
+        width: 100%;
+    }
+    .calc__buttons__item {
+        display: block;
+        width: 25%;
+        height: 80px;
+        background: rgba(11 39 66 / .5);
+        text-align: center;
+        line-height: 80px;
+        cursor: pointer;
+        box-sizing: border-box;
+        color: #e2e9f0;
+        font-size: 23px;
+    }
+    .calc__buttons__item.operation {
+        color: #4197c9;
+    }
+    .calc__buttons__item.operation.cancel {
+        color: #a0552d;
+        font-weight: bold;
+    }
+    .calc__buttons__item.operation.result {
+        position: relative;
+    }
+    .calc__buttons__item.operation.result::before {
+        display: block;
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #2ca1fb;
+        content: attr(data-name);
+        line-height: 40px;
+        color: #fff;
+    }
+    .calc__buttons__item.operation.ans {
+        font-size: 15px;
+    }
+    .calc__buttons__item:hover {
+        opacity: 0.8;
+    }
+
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="calc">
+          <div class="calc__header">
+            <div v-if="operation" class="calc__small">
+              {{ operation }}
+            </div>
+            <div v-if="memory" class="calc__small">
+              Ans = {{ memory }}
+            </div>
+            <input type="text" class="calc__input" placeholder="0" v-model="input" />
+          </div>
+          <div class="calc__buttons">
+            
+            <span class="calc__buttons__item" 
+                  v-for="button in but"
+                  @click.prevent="clickButton(button.value, button.type)"
+                  :style="{order: button.order}" 
+                  :class="button.class"
+                  :data-name="button.name">
+              {{ button.name }}
+            </span>
+            
+          </div>
+        </div>
+    </div>
+
+
+    <script>
+    let vm = new Vue({
+        el: '#app',
+        data: {
+            input: '',
+            operation: '',
+            memory: null,
+            
+            but: [
+                { order: 17, name: '0', value: '0', type: 'operation', class: ''},
+                { order: 4, name: '1', value: '1', type: 'operation', class: ''},
+                { order: 5, name: '2', value: '2', type: 'operation', class: ''},
+                { order: 6, name: '3', value: '3', type: 'operation', class: ''},
+                { order: 8, name: '4', value: '4', type: 'operation', class: ''},
+                { order: 9, name: '5', value: '5', type: 'operation', class: ''},
+                { order: 10, name: '6', value: '6', type: 'operation', class: ''},
+                { order: 12, name: '7', value: '7', type: 'operation', class: ''},
+                { order: 13, name: '8', value: '8', type: 'operation', class: ''},
+                { order: 14, name: '9', value: '9', type: 'operation', class: ''},
+                { order: 3, name: '+', value: '+', type: 'operation', class: 'operation'},
+                { order: 7, name: '—', value: '-', type: 'operation', class: 'operation'},
+                { order: 11, name: '×', value: '*', type: 'operation', class: 'operation'},
+                { order: 15, name: '/', value: '/', type: 'operation', class: 'operation'},
+                { order: 19, name: '=', value: '=', type: 'calculate', class: 'operation result'},
+                { order: 18, name: 'ANS', value: 'ans', type: 'ans', class: 'operation ans'},
+                { order: 16, name: '.', value: '.', type: 'operation', class: 'operation'},
+                { order: 1, name: '(', value: '(', type: 'operation', class: 'operation'},
+                { order: 2, name: ')', value: ')', type: 'operation', class: 'operation'},
+                { order: 0, name: 'C', value: 'C', type: 'reset', class: 'operation cancel'},
+            ],
+            
+            isCalc: false
+        },
+        
+        methods: {
+            clickButton: function(value, type) {
+            
+                if(type === 'operation') {
+                    this.input = this.input.toString();
+                    
+                    if(this.isCalc === true) {
+                    this.memory = this.input;
+                    this.input = '';
+                    this.operation = '';
+                    this.isCalc = false;
+                    }
+                    this.input += value;
+                } else if(type === 'ans') {
+                    this.ans();
+                } else if(type === 'calculate') {
+                    this.calc();
+                } else if(type === 'reset') {
+                    this.reset();
+                }
+            },
+            
+            calc: function() {
+                this.operation = this.input;
+                this.input = eval(this.input);
+                this.memory = '';
+                this.isCalc = true;
+            },
+            
+            reset: function() {
+                this.input = '';
+                this.memory = '';
+                this.operation = '';
+            },
+            
+            ans: function() {
+                this.input += this.memory;
+            }
+        }
+    });
+    </script>
+</body>
+</html>
+
